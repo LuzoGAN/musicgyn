@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Playlists{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:14px;">🎵 Playlists</h1>
+  <div class="filters">
+    <a href="{{ url_for('manage_playlists', status='all') }}" class="{{ 'active' if status=='all' else '' }}">Todas</a>
+    <a href="{{ url_for('manage_playlists', status='approved') }}" class="{{ 'active' if status=='approved' else '' }}">Aprovadas</a>
+    <a href="{{ url_for('manage_playlists', status='pending') }}" class="{{ 'active' if status=='pending' else '' }}">Pendentes</a>
+  </div>
+
+  <div class="card">
+    <h2>➕ Cadastrar playlist oficial</h2>
+    <form method="POST" action="{{ url_for('admin_add_playlist') }}">
+      <div class="grid">
+        <div><label>Nome</label><input type="text" name="name" required placeholder="Ex: Warm-up Eletrônica"></div>
+        <div><label>Categoria</label>
+          <select name="category">
+            <option value="wod">WOD</option>
+            <option value="weightlifting">Weightlifting</option>
+            <option value="cardio">Cardio</option>
+            <option value="mobility">Mobility</option>
+            <option value="open_gym">Open Gym</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid">
+        <div><label>Plataforma</label>
+          <select name="platform">
+            <option value="youtube">YouTube</option>
+            <option value="spotify">Spotify</option>
+            <option value="apple_music">Apple Music</option>
+            <option value="soundcloud">SoundCloud</option>
+            <option value="deezer">Deezer</option>
+          </select>
+        </div>
+        <div><label>URL</label><input type="url" name="platform_url" required placeholder="https://..."></div>
+      </div>
+      <label>Descrição</label><input type="text" name="description" placeholder="Quando tocar essa playlist?">
+      <button class="btn" type="submit">Salvar</button>
+    </form>
+  </div>
+
+  {% if playlists %}
+    {% for p in playlists %}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2>{{ p.name }} {% if p.is_official %}<span class="badge badge-official">⭐ oficial</span>{% endif %} {% if not p.approved %}<span class="badge badge-pending">pendente</span>{% endif %}</h2>
+          <div class="playlist-meta">{{ p.platform|title }} • {{ p.category }} • por {{ p.created_by }} • {{ p.vote_count }} votos • tocada {{ p.times_played }}x • {{ p.created_at.strftime('%d/%m/%Y') }}</div>
+          {% if p.description %}<p style="margin-top:8px;">{{ p.description }}</p>{% endif %}
+          <p style="font-size:12px;color:var(--muted);word-break:break-all;">{{ p.platform_url }}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          {% if not p.approved %}<a class="btn btn-small" href="{{ url_for('approve_playlist', playlist_id=p.id) }}">Aprovar ✅</a>{% endif %}
+          <a class="btn btn-small btn-secondary" href="{{ url_for('playlist_detail', playlist_id=p.id) }}">🎵 Faixas ({{ p.tracks|length }})</a>
+          <a class="btn btn-small btn-secondary" href="{{ url_for('toggle_official', playlist_id=p.id) }}">{% if p.is_official %}Remover ⭐{% else %}Marcar ⭐{% endif %}</a>
+          <a class="btn btn-small btn-danger" href="{{ url_for('delete_playlist', playlist_id=p.id) }}" onclick="return confirmAction('Excluir playlist?')">Excluir</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="text-align:center;"><h2>Nada por aqui</h2><p style="color:var(--muted);">Ajuste o filtro ou cadastre uma playlist.</p></div>
+  {% endif %}
+
+  {% if pending_songs %}
+  <div class="card">
+    <h2>🎵 Pedidos de música ({{ pending_songs|length }})</h2>
+    <p style="color:var(--muted);font-size:14px;">Entram no sorteio justo do Modo Aula. Remova o que não combinar com o treino.</p>
+    {% for s in pending_songs %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ s.title }}{% if s.artist %} — {{ s.artist }}{% endif %}</h3>
+      <div class="playlist-meta">{{ s.platform|title }} • por {{ s.suggested_by }}{% if s.session_id %} • aula #{{ s.session_id }}{% endif %} • <a href="{{ s.platform_url }}" target="_blank" rel="noopener">ouvir</a></div></div>
+      <div style="display:flex;gap:8px;">
+        {% if not s.approved %}<a class="btn btn-small" href="{{ url_for('approve_song', song_id=s.id) }}">Aprovar</a>{% endif %}
+        <a class="btn btn-small btn-danger" href="{{ url_for('delete_song', song_id=s.id) }}" onclick="return confirmAction('Remover pedido?')">Remover</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

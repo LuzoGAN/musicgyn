@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ current_user.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:16px;">Dashboard • {{ current_user.name }}</h1>
+  <div class="grid" style="margin-bottom:16px;">
+    <div class="stat-card"><div class="stat-number">{{ total_playlists }}</div><div class="stat-label">Playlists</div></div>
+    <div class="stat-card"><div class="stat-number">{{ active_sessions }}</div><div class="stat-label">Votações ativas</div></div>
+    <div class="stat-card"><div class="stat-number">{{ total_votes }}</div><div class="stat-label">Votos totais</div></div>
+    <div class="stat-card"><div class="stat-number">{{ pending_count }}</div><div class="stat-label">Aguard. aprovação</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📱 QR Code da academia</h2>
+      <p style="color:var(--muted);margin-bottom:12px;">Imprima e cole na recepção. Aponta → vota.</p>
+      <div class="qr-box"><img src="data:image/svg+xml;base64,{{ qr_code }}" alt="QR Code" style="max-width:220px;width:100%;"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;word-break:break-all;">{{ url_for('gym_public', gym_token=current_user.qr_code_token, _external=True) }}</p>
+      {% if pending_songs %}<p style="margin-top:8px;">🎵 {{ pending_songs }} música(s) avulsa(s) sugeridas p/ avaliar.</p>{% endif %}
+    </div>
+    <div class="card">
+      <h2>⚡ Ações rápidas</h2>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a class="btn" href="{{ url_for('new_session') }}">🗳️ Nova votação</a>
+        <a class="btn" href="{{ url_for('mixes') }}">🔀 Modo Aula (mix base + pedidos)</a>
+        <a class="btn btn-secondary" href="{{ url_for('tv_mode', gym_token=current_user.qr_code_token) }}" target="_blank">📺 Modo TV</a>
+        <a class="btn btn-secondary" href="{{ url_for('manage_playlists') }}">🎵 Playlists {% if pending_count %}({{ pending_count }}){% endif %}</a>
+        <a class="btn btn-secondary" href="{{ url_for('settings') }}">🎨 Cores e logo</a>
+        <a class="btn btn-secondary" href="{{ url_for('gym_public', gym_token=current_user.qr_code_token) }}" target="_blank">👀 Ver página do aluno</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Sessões recentes</h2>
+    {% if recent_sessions %}
+      {% for s in recent_sessions %}
+      <div class="playlist-item">
+        <div class="playlist-info">
+          <h3>{{ s.title }} <span class="badge {{ 'badge-pending' if s.status=='open' else '' }}">{{ s.status }}</span></h3>
+          <div class="playlist-meta">{{ s.class_date.strftime('%d/%m/%Y %H:%M') }}
+            {% if s.winning_playlist %} • 🏆 {{ s.winning_playlist.name }}{% endif %}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a class="btn btn-small btn-secondary" href="{{ url_for('session_results', session_id=s.id) }}">Ranking</a>
+          {% if s.status == 'open' %}
+          <a class="btn btn-small" href="{{ url_for('close_session', session_id=s.id) }}" onclick="return confirmAction('Encerrar votação e definir vencedora?')">Encerrar</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted);">Nenhuma sessão ainda. Crie a primeira votação! 🚀</p>
+    {% endif %}
+  </div>
+
+  {% if recent_mixes %}
+  <div class="card">
+    <h2>🔀 Mixes recentes (Modo Aula)</h2>
+    {% for m in recent_mixes %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ m.title }}</h3>
+      <div class="playlist-meta">{{ m.items|length }} faixas • {{ m.target_minutes }} min • {{ m.created_at.strftime('%d/%m %H:%M') }}</div></div>
+      <a class="btn btn-small" href="{{ url_for('mix_player', mix_id=m.id) }}">▶ Abrir player</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if top_playlists %}
+  <div class="card">
+    <h2>🏆 Top playlists</h2>
+    {% for p in top_playlists %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ p.name }} {% if p.is_official %}<span class="badge badge-official">⭐</span>{% endif %}{% if not p.approved %} <span class="badge badge-pending">pendente</span>{% endif %}</h3>
+      <div class="playlist-meta">{{ p.platform|title }} • {{ p.vote_count }} votos • tocada {{ p.times_played }}x</div></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

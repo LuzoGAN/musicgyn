@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Configurações{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:16px;">⚙️ Cores da sua academia</h1>
+  <div class="card">
+    <h2>🎨 Identidade visual</h2>
+    <p style="color:var(--muted);margin-bottom:12px;">Padrão GymBeats é preto + vermelho, mas deixe com a cara da sua marca.</p>
+    <form method="POST">
+      <div class="grid">
+        <div><label>Primária (botões/destaques)</label><input type="color" name="primary_color" value="{{ current_user.primary_color }}" style="height:56px;"></div>
+        <div><label>Fundo</label><input type="color" name="secondary_color" value="{{ current_user.secondary_color }}" style="height:56px;"></div>
+        <div><label>Texto</label><input type="color" name="accent_color" value="{{ current_user.accent_color }}" style="height:56px;"></div>
+      </div>
+      <label>URL do logo</label><input type="url" name="logo_url" value="{{ current_user.logo_url or '' }}" placeholder="https://...">
+      <button class="btn" type="submit">💾 Salvar</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>🎛️ Regras da aula</h2>
+    <form method="POST">
+      <div class="grid">
+        <div><label>Pedidos por aluno/aula (1–10)</label><input type="number" name="max_requests_per_session" min="1" max="10" value="{{ current_user.max_requests_per_session or 3 }}"></div>
+        <div><label>Votos p/ pular faixa (1–50)</label><input type="number" name="skip_votes_needed" min="1" max="50" value="{{ current_user.skip_votes_needed or 5 }}"></div>
+      </div>
+      <button class="btn" type="submit">💾 Salvar regras</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>👀 Prévia</h2>
+    <div style="background:{{ current_user.secondary_color }};padding:24px;border-radius:12px;border:2px solid {{ current_user.primary_color }};">
+      <h2 style="color:{{ current_user.primary_color }};">{{ current_user.name }}</h2>
+      <p style="color:{{ current_user.accent_color }};">É assim que o aluno vê a página da votação.</p>
+      <span class="btn" style="background:{{ current_user.primary_color }};color:{{ current_user.accent_color }};margin-top:10px;">🎵 Votar agora</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

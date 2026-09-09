@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}GymBeats - Playlist Colaborativa para Academias{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="hero">
+    <h1>Gym<span>Beats</span></h1>
+    <p>A trilha sonora do seu treino, escolhida por quem treina. 🗳️🎵</p>
+    <p style="font-size:14px;">{{ gyms_count }} academia(s) usando • QR Code • Votação por aula • YouTube, Spotify, Apple Music, SoundCloud e Deezer</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>🏋️ Para alunos</h2>
+      <p>Escaneie o QR Code da sua academia, vote na playlist do próximo WOD e sugira sons.</p>
+      <form method="GET" action="{{ url_for('index') }}" style="margin-top:14px;">
+        <label>Tem o código da academia?</label>
+        <input type="text" name="gym" placeholder="Cole o token do QR Code">
+        <button class="btn" type="submit" style="width:100%;">Entrar na academia</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>📊 Para academias & boxes</h2>
+      <p>Crie votações por aula, aprove sugestões, personalize as cores e veja o ranking.</p>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+        <a class="btn" href="{{ url_for('login') }}">Entrar</a>
+        <a class="btn btn-secondary" href="{{ url_for('register') }}">Cadastrar academia</a>
+      </div>
+      <p style="margin-top:12px;font-size:13px;color:var(--muted);">Demo: demo@gymbeats.com / demo123</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ Como funciona</h2>
+    <div class="grid">
+      <div><strong>1. Academia cria a votação</strong><br><span style="color:var(--muted)">Ex: "WOD Quarta 18h" com 3-4 playlists candidatas.</span></div>
+      <div><strong>2. Alunos votam pelo celular</strong><br><span style="color:var(--muted)">Via QR Code, sem precisar instalar nada.</span></div>
+      <div><strong>3. A mais votada toca na aula</strong><br><span style="color:var(--muted)">Ranking ao vivo + histórico de vencedoras.</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📱 Pronto para iOS e Android</h2>
+    <p>A API REST <code>/api/v1/</code> já expõe academia, votação ativa, voto e sugestão — é só plugar Swift/Kotlin/Flutter/React Native.</p>
+  </div>
+</div>
+{% endblock %}

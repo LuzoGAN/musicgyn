@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Nova votação{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:16px;">🗳️ Nova sessão de votação</h1>
+  <div class="card">
+    <form method="POST">
+      <label>Título (ex: WOD Quarta 18h)</label><input type="text" name="title" required>
+      <label>Descrição</label><textarea name="description" rows="3" placeholder="O que vai rolar na aula?"></textarea>
+      <div class="grid">
+        <div><label>Data/hora da aula</label><input type="datetime-local" name="class_date" required></div>
+        <div><label>Duração da votação</label>
+          <select name="voting_hours">
+            <option value="6">6 horas</option>
+            <option value="12">12 horas</option>
+            <option value="24" selected>24 horas</option>
+            <option value="48">48 horas</option>
+            <option value="72">72 horas</option>
+          </select>
+        </div>
+      </div>
+      <h3 style="margin:14px 0;">Playlists candidatas</h3>
+      {% if playlists %}
+        {% for p in playlists %}
+        <label class="playlist-item" style="cursor:pointer;">
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="checkbox" name="playlists" value="{{ p.id }}" style="width:auto;">
+            <div class="playlist-info"><h3>{{ p.name }} {% if p.is_official %}<span class="badge badge-official">⭐</span>{% endif %}</h3>
+            <div class="playlist-meta">{{ p.platform|title }} • {{ p.category }} • {{ p.vote_count }} votos</div></div>
+          </div>
+        </label>
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--muted);">Nenhuma playlist aprovada. Cadastre em Gerenciar Playlists primeiro.</p>
+      {% endif %}
+      <button class="btn" style="width:100%;margin-top:12px;" type="submit">🚀 Criar votação</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

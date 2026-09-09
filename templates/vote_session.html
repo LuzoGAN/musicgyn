@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Ranking - {{ vote_session.title }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card" style="text-align:center;">
+    <h1>{{ vote_session.title }}</h1>
+    <p style="color:var(--muted);">{{ gym.name }} • {{ vote_session.class_date.strftime('%d/%m/%Y %H:%M') }} • status: {{ vote_session.status }}</p>
+    {% if vote_session.winning_playlist %}<h2 style="margin-top:10px;">🏆 {{ vote_session.winning_playlist.name }}</h2>{% endif %}
+  </div>
+  <div class="card">
+    <h2>📊 Ranking de votos</h2>
+    {% if ranking %}
+      {% for p, total in ranking %}
+      <div class="playlist-item">
+        <div class="playlist-info"><h3>#{{ loop.index }} {{ p.name }}</h3><div class="playlist-meta">{{ p.platform|title }} • por {{ p.created_by }}</div></div>
+        <div class="vote-count">{{ total }} votos</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted);">Nenhum voto ainda.</p>
+    {% endif %}
+    <a class="btn btn-secondary" href="{{ url_for('gym_public', gym_token=gym.qr_code_token) }}">← Voltar</a>
+  </div>
+</div>
+{% endblock %}

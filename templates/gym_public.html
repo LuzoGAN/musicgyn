@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}{{ gym.name }} - GymBeats{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card" style="text-align:center;">
+    {% if gym.logo_url %}<img src="{{ gym.logo_url }}" alt="{{ gym.name }}" style="max-width:180px;margin-bottom:12px;border-radius:10px;">{% endif %}
+    <h1 style="font-size:clamp(30px,5vw,46px);">{{ gym.name }}</h1>
+    <p style="color:var(--muted);">Escolha a trilha do seu treino 💪</p>
+  </div>
+
+  {% if latest_notice %}
+  <div class="card" style="border-width:2px;text-align:center;">
+    <h2>🔔 {{ latest_notice.title }}</h2>
+    {% if latest_notice.body %}<p>{{ latest_notice.body }}</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if now_mix and now_item %}
+  <div class="card" style="text-align:center;border-width:2px;">
+    <p style="color:var(--muted);font-size:13px;">🔊 TOCANDO AGORA NA AULA</p>
+    <h2 style="font-size:clamp(24px,5vw,36px);">{{ now_item.title }}</h2>
+    <p>{{ now_item.artist or '' }}{% if now_item.kind == 'request' %} • pedido de <strong>{{ now_item.requested_by or 'Anônimo' }}</strong>{% endif %}</p>
+    <form method="POST" action="{{ url_for('vote_skip', gym_token=gym.qr_code_token) }}" style="margin-top:12px;">
+      <input type="hidden" name="mix_id" value="{{ now_mix.id }}">
+      <div class="grid">
+        <div><input type="text" name="user_name" placeholder="Seu nome"></div>
+        <div><input type="email" name="user_email" placeholder="Seu email (1 voto por pessoa)"></div>
+      </div>
+      <button class="btn btn-secondary" style="width:100%;" type="submit">⏭️ Pular essa ({% if skip_votes %}{{ skip_votes }}{% else %}0{% endif %}/{{ skip_needed }})</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if active_session %}
+  <div class="card">
+    <h2>🗳️ {{ active_session.title }}</h2>
+    {% if active_session.description %}<p style="margin-bottom:10px;">{{ active_session.description }}</p>{% endif %}
+    {% if active_session.voting_ends %}
+      <p>⏰ Encerra em: <strong data-countdown="{{ active_session.voting_ends.isoformat() }}"></strong>
+      ({{ active_session.voting_ends.strftime('%d/%m %H:%M') }})</p>
+    {% endif %}
+    <p style="margin:8px 0;"><a href="{{ url_for('session_results', session_id=active_session.id) }}">Ver ranking ao vivo →</a></p>
+
+    <form method="POST" action="{{ url_for('cast_vote', gym_token=gym.qr_code_token) }}">
+      <input type="hidden" name="session_id" value="{{ active_session.id }}">
+      <div class="grid">
+        <div><label>Seu nome</label><input type="text" name="user_name" placeholder="Como quer ser chamado?"></div>
+        <div><label>Email (evita voto duplo)</label><input type="email" name="user_email" placeholder="voce@email.com"></div>
+      </div>
+      <h3 style="margin:14px 0;">Escolha uma playlist:</h3>
+      {% for sp in active_session.available_playlists %}
+      <label class="playlist-item" style="cursor:pointer;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="radio" name="playlist_id" value="{{ sp.playlist.id }}" required style="width:auto;">
+          <div class="playlist-info">
+            <h3>{{ sp.playlist.name }} {% if sp.playlist.is_official %}<span class="badge badge-official">⭐ oficial</span>{% endif %}</h3>
+            <div class="playlist-meta">{{ sp.playlist.platform|title }} • {{ sp.playlist.category }} • por {{ sp.playlist.created_by }}</div>
+            {% if sp.playlist.platform == 'youtube' and sp.playlist.embed_id %}
+            <div class="embed-wrap"><iframe src="https://www.youtube.com/embed/{{ sp.playlist.embed_id }}" loading="lazy" allowfullscreen></iframe></div>
+            {% elif sp.playlist.platform == 'spotify' and sp.playlist.embed_id %}
+            <div class="embed-wrap"><iframe src="https://open.spotify.com/embed/{{ sp.playlist.embed_id }}" loading="lazy" allowfullscreen></iframe></div>
+            {% else %}
+            <div class="playlist-meta"><a href="{{ sp.playlist.platform_url }}" target="_blank" rel="noopener">Ouvir na plataforma →</a></div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="vote-count">{{ sp.playlist.vote_count }} votos</div>
+      </label>
+      {% endfor %}
+      <button class="btn" style="width:100%;margin-top:12px;" type="submit">🎵 Votar agora</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center;">
+    <h2>Sem votação aberta agora</h2>
+    <p style="color:var(--muted);">Sugira uma playlist abaixo para a próxima aula! 👇</p>
+  </div>
+  {% endif %}
+
+  <div class="grid">
+    <div class="card">
+      <h2>💡 Sugerir playlist</h2>
+      <form method="POST" action="{{ url_for('suggest_playlist', gym_token=gym.qr_code_token) }}">
+        <label>Nome da playlist</label>
+        <input type="text" name="name" placeholder="Ex: Metal pesado p/ WOD" required>
+        <div class="grid">
+          <div><label>Plataforma</label>
+            <select name="platform" required>
+              <option value="youtube">YouTube</option>
+              <option value="spotify">Spotify</option>
+              <option value="apple_music">Apple Music</option>
+              <option value="soundcloud">SoundCloud</option>
+              <option value="deezer">Deezer</option>
+            </select>
+          </div>
+          <div><label>Categoria do treino</label>
+            <select name="category">
+              <option value="wod">WOD</option>
+              <option value="weightlifting">Weightlifting</option>
+              <option value="cardio">Cardio</option>
+              <option value="mobility">Mobility</option>
+              <option value="open_gym">Open Gym</option>
+            </select>
+          </div>
+        </div>
+        <label>Link da playlist</label>
+        <input type="url" name="platform_url" placeholder="https://..." required>
+        <label>Descrição (opcional)</label>
+        <input type="text" name="description" placeholder="Por que essa playlist é perfeita?">
+        <label>Seu nome</label>
+        <input type="text" name="suggested_by" placeholder="Anônimo">
+        <button class="btn" style="width:100%;" type="submit">📤 Enviar sugestão</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>🎵 Pedir música p/ a aula</h2>
+      <p style="color:var(--muted);font-size:14px;">Ela toca no meio da playlist base em sorteio justo: ninguém fica de fora e ninguém domina a fila. 🔀</p>
+      <form method="POST" action="{{ url_for('suggest_song', gym_token=gym.qr_code_token) }}">
+        {% if active_session %}<input type="hidden" name="session_id" value="{{ active_session.id }}">{% endif %}
+        <label>Título *</label><input type="text" name="title" required placeholder="Ex: Enter Sandman">
+        <label>Artista</label><input type="text" name="artist" placeholder="Ex: Metallica">
+        <label>Plataforma</label>
+        <select name="platform">
+          <option value="youtube">YouTube</option>
+          <option value="spotify">Spotify</option>
+          <option value="apple_music">Apple Music</option>
+          <option value="soundcloud">SoundCloud</option>
+          <option value="deezer">Deezer</option>
+        </select>
+        <label>Link *</label><input type="url" name="platform_url" required placeholder="https://...">
+        <label>Seu nome</label><input type="text" name="suggested_by" placeholder="Anônimo">
+        <button class="btn btn-secondary" style="width:100%;" type="submit">Pedir música 🤘</button>
+      </form>
+    </div>
+  </div>
+
+  {% if session_song_list %}
+  <div class="card">
+    <h2>🎧 Pedidos desta aula ({{ session_song_list|length }})</h2>
+    <p style="color:var(--muted);font-size:14px;">Tocam intercalados com a playlist base, em ordem sorteada e justa.</p>
+    {% for s in session_song_list %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ s.title }}{% if s.artist %} — {{ s.artist }}{% endif %}</h3>
+      <div class="playlist-meta">pedido de {{ s.suggested_by or 'Anônimo' }} • {{ s.platform|title }}</div></div>
+      <a class="btn btn-small btn-secondary" href="{{ s.platform_url }}" target="_blank" rel="noopener">Ouvir</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if official_playlists %}
+  <div class="card">
+    <h2>⭐ Playlists oficiais da casa</h2>
+    {% for p in official_playlists %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ p.name }}</h3><div class="playlist-meta">{{ p.platform|title }} • tocada {{ p.times_played }}x</div></div>
+      <a class="btn btn-small btn-secondary" href="{{ p.platform_url }}" target="_blank" rel="noopener">Ouvir</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if top_playlists %}
+  <div class="card">
+    <h2>🔥 Mais votadas</h2>
+    <div class="filters">
+      <a href="{{ url_for('gym_public', gym_token=gym.qr_code_token) }}" class="{{ 'active' if not selected_category else '' }}">Todas</a>
+      {% for c in ['wod','weightlifting','cardio','mobility','open_gym'] %}
+      <a href="{{ url_for('gym_public', gym_token=gym.qr_code_token, category=c) }}" class="{{ 'active' if selected_category==c else '' }}">{{ c }}</a>
+      {% endfor %}
+    </div>
+    {% for p in top_playlists %}
+    <div class="playlist-item">
+      <div class="playlist-info"><h3>{{ p.name }}</h3><div class="playlist-meta">{{ p.platform|title }} • {{ p.category }} • por {{ p.created_by }}</div></div>
+      <div class="vote-count">{{ p.vote_count }} votos</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

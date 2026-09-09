@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GymBeats{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    :root {
+      {% if gym is defined and gym %}
+        --primary: {{ gym.primary_color }};
+        --secondary: {{ gym.secondary_color }};
+        --accent: {{ gym.accent_color }};
+      {% elif current_user.is_authenticated %}
+        --primary: {{ current_user.primary_color }};
+        --secondary: {{ current_user.secondary_color }};
+        --accent: {{ current_user.accent_color }};
+      {% endif %}
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if current_user.is_authenticated %}
+  <nav class="navbar">
+    <div class="container">
+      <a href="{{ url_for('dashboard') }}" class="logo">🎵 GymBeats</a>
+      <div class="nav-links">
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('manage_playlists') }}">Playlists</a>
+        <a href="{{ url_for('mixes') }}">Modo Aula</a>
+        <a href="{{ url_for('settings') }}">Cores</a>
+        <a href="{{ url_for('logout') }}">Sair</a>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  {% block content %}{% endblock %}
+
+  <div class="footer">GymBeats • trilha sonora do seu treino • API pronta p/ iOS & Android em /api/v1/</div>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

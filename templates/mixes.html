@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Modo Aula{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:6px;">🔀 Modo Aula</h1>
+  <p style="color:var(--muted);margin-bottom:16px;">Playlist base + pedidos dos alunos intercalados em sorteio justo. Ninguém domina a fila.
+  <a class="btn btn-small btn-secondary" href="{{ url_for('tv_mode', gym_token=current_user.qr_code_token) }}" target="_blank">📺 Abrir Modo TV</a></p>
+
+  <div class="card">
+    <h2>⚙️ Gerar mix da aula</h2>
+    <form method="POST" action="{{ url_for('new_mix') }}">
+      <label>Nome do mix</label><input type="text" name="title" placeholder="Ex: WOD Quarta 18h - mix">
+      <div class="grid">
+        <div><label>Aula (sessão)</label>
+          <select name="session_id">
+            <option value="">— sem aula (só pedidos gerais) —</option>
+            {% for s in sessions %}
+            <option value="{{ s.id }}">{{ s.title }} ({{ s.status }}){% if s.winning_playlist %} • base sugerida: {{ s.winning_playlist.name }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div><label>Playlist base (link já cadastrado)</label>
+          <select name="base_playlist_id">
+            <option value="">— automática (vencedora da aula) —</option>
+            {% for p in playlists %}
+            <option value="{{ p.id }}">{{ p.name }} ({{ p.tracks|length }} faixas)</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="grid">
+        <div><label>Duração da aula (min)</label>
+          <select name="target_minutes">
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60" selected>60 min (CrossFit)</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+        <div><label>Proporção (base : pedido)</label>
+          <select name="base_per_request">
+            <option value="1">1 da base + 1 pedido</option>
+            <option value="2">2 da base + 1 pedido</option>
+            <option value="3" selected>3 da base + 1 pedido</option>
+            <option value="4">4 da base + 1 pedido</option>
+            <option value="0">Só pedidos</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px;" type="submit">🔀 Gerar mix justo</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>📼 Mixes gerados</h2>
+    {% if mixes %}
+      {% for m in mixes %}
+      <div class="playlist-item">
+        <div class="playlist-info"><h3>{{ m.title }}</h3>
+        <div class="playlist-meta">{{ m.items|length }} faixas • {{ m.target_minutes }} min • {{ m.created_at.strftime('%d/%m %H:%M') }}
+        {% if m.base_playlist %} • base: {{ m.base_playlist.name }}{% endif %}</div></div>
+        <div style="display:flex;gap:8px;">
+          <a class="btn btn-small" href="{{ url_for('mix_player', mix_id=m.id) }}">▶ Player</a>
+          <a class="btn btn-small btn-danger" href="{{ url_for('mix_delete', mix_id=m.id) }}" onclick="return confirmAction('Excluir mix?')">Excluir</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted);">Nenhum mix ainda. Gere o primeiro acima! 🚀</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

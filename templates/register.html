@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Cadastro - GymBeats{% endblock %}
+{% block content %}
+<div class="container" style="max-width:480px;padding-top:60px;">
+  <div class="card">
+    <h1 style="text-align:center;">🎵 GymBeats</h1>
+    <h2 style="text-align:center;">Cadastrar academia</h2>
+    <form method="POST">
+      <label>Nome da academia / box</label><input type="text" name="name" required placeholder="Ex: CrossFit Alfa">
+      <label>Email</label><input type="email" name="email" required>
+      <label>Senha (6+ caracteres)</label><input type="password" name="password" required minlength="6">
+      <button class="btn" style="width:100%;margin-top:10px;" type="submit">Cadastrar</button>
+    </form>
+    <p style="text-align:center;margin-top:14px;">Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+  </div>
+</div>
+{% endblock %}

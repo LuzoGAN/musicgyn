@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ playlist.name }} - Faixas{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom:6px;">🎵 {{ playlist.name }}</h1>
+  <p style="color:var(--muted);margin-bottom:16px;">
+    Playlist por link ({{ playlist.platform|title }}) •
+    <a href="{{ playlist.platform_url }}" target="_blank" rel="noopener">abrir link original →</a>
+  </p>
+
+  <div class="card">
+    <h2>⬇️ Importar faixas do link</h2>
+    <p style="color:var(--muted);font-size:14px;">Puxamos só o necessário p/ o tempo da aula
+    (10–20 faixas + pedidos avulsos) — playlist gigante não precisa vir inteira, o mix repete a base em loop.</p>
+    <form method="POST" action="{{ url_for('import_tracks', playlist_id=playlist.id) }}">
+      <div class="grid">
+        <div><label>Duração da aula (min)</label>
+          <select name="target_minutes">
+            <option value="30">30</option>
+            <option value="45">45</option>
+            <option value="60" selected>60 (CrossFit)</option>
+            <option value="90">90</option>
+          </select>
+        </div>
+        <div><label>Proporção (base : pedido)</label>
+          <select name="base_per_request">
+            <option value="2">2 + 1 pedido</option>
+            <option value="3" selected>3 + 1 pedido</option>
+            <option value="4">4 + 1 pedido</option>
+          </select>
+        </div>
+        <div><label>Máximo (opcional)</label><input type="number" name="max_tracks" min="1" max="50" placeholder="auto (10–20)"></div>
+      </div>
+      <button class="btn" type="submit">⬇️ Importar do link</button>
+    </form>
+    {% if playlist.platform == 'spotify' %}
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;">Spotify precisa de SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET no servidor. Sem isso, use playlist do YouTube ou cadastre manualmente.</p>
+    {% elif playlist.platform == 'youtube' %}
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;">YouTube funciona sem configuração (leitura da página pública). Com YOUTUBE_API_KEY no servidor, importamos títulos e durações exatas.</p>
+    {% else %}
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;">{{ playlist.platform|title }} não tem importação automática — cadastre as faixas pelos links individuais abaixo.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>➕ Adicionar faixa manual</h2>
+    <p style="color:var(--muted);font-size:14px;">Cadastre as músicas dessa playlist por link individual.
+    O Modo Aula usa essas faixas para intercalar com os pedidos dos alunos.</p>
+    <form method="POST" action="{{ url_for('add_track', playlist_id=playlist.id) }}">
+      <div class="grid">
+        <div><label>Título *</label><input type="text" name="title" required placeholder="Ex: Thunderstruck"></div>
+        <div><label>Artista</label><input type="text" name="artist" placeholder="Ex: AC/DC"></div>
+      </div>
+      <div class="grid">
+        <div><label>Plataforma</label>
+          <select name="platform">
+            {% for plat in ['youtube','spotify','apple_music','soundcloud','deezer'] %}
+            <option value="{{ plat }}" {{ 'selected' if plat==playlist.platform else '' }}>{{ plat|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div><label>Duração (segundos, opcional)</label><input type="number" name="duration_sec" min="30" max="1200" placeholder="210"></div>
+      </div>
+      <label>Link da faixa *</label><input type="url" name="platform_url" required placeholder="https://...">
+      <button class="btn" type="submit">Adicionar faixa</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>📋 Faixas ({{ tracks|length }})</h2>
+    {% if tracks %}
+      {% for t in tracks %}
+      <div class="playlist-item">
+        <div class="playlist-info"><h3>#{{ loop.index }} {{ t.title }}{% if t.artist %} — {{ t.artist }}{% endif %}</h3>
+        <div class="playlist-meta">{{ t.platform|title }} • {{ t.duration_sec or 210 }}s • <a href="{{ t.platform_url }}" target="_blank" rel="noopener">ouvir</a></div></div>
+        <a class="btn btn-small btn-danger" href="{{ url_for('delete_track', track_id=t.id) }}" onclick="return confirmAction('Remover faixa?')">Remover</a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted);">Nenhuma faixa cadastrada ainda. Sem faixas, o Modo Aula toca a playlist pelo link em blocos + pedidos.</p>
+    {% endif %}
+    <a class="btn btn-secondary" href="{{ url_for('manage_playlists') }}">← Voltar</a>
+  </div>
+</div>
+{% endblock %}

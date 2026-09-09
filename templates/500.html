@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Erro{% endblock %}
+{% block content %}
+<div class="container" style="max-width:560px;padding-top:60px;text-align:center;">
+  <div class="card"><h1>500 😞</h1><p>Algo deu errado. Tente novamente.</p><a class="btn" href="{{ url_for('index') }}" style="margin-top:12px;">Voltar ao início</a></div>
+</div>
+{% endblock %}

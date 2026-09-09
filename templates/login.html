@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Login - GymBeats{% endblock %}
+{% block content %}
+<div class="container" style="max-width:480px;padding-top:60px;">
+  <div class="card">
+    <h1 style="text-align:center;">🎵 GymBeats</h1>
+    <h2 style="text-align:center;">Login da academia</h2>
+    <form method="POST">
+      <label>Email</label><input type="email" name="email" required>
+      <label>Senha</label><input type="password" name="password" required>
+      <button class="btn" style="width:100%;margin-top:10px;" type="submit">Entrar</button>
+    </form>
+    <p style="text-align:center;margin-top:14px;">Sem conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
+  </div>
+</div>
+{% endblock %}

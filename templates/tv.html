@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Modo TV - {{ gym.name }}{% endblock %}
+{% block extra_css %}
+<style>
+  body { background: #000; }
+  .tv-wrap { max-width: 1100px; margin: 0 auto; padding: 3vh 3vw; text-align: center; }
+  .tv-gym { font-size: clamp(18px, 2.5vw, 28px); color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .tv-label { font-size: clamp(14px, 2vw, 20px); color: var(--primary); font-weight: 800; letter-spacing: 3px; margin-top: 2vh; }
+  .tv-now { font-size: clamp(40px, 8vw, 96px); font-weight: 900; line-height: 1.05; margin: 1vh 0; }
+  .tv-artist { font-size: clamp(20px, 3.5vw, 40px); color: var(--muted); }
+  .tv-req { font-size: clamp(16px, 2.5vw, 26px); margin-top: 1vh; color: var(--accent); }
+  .tv-skip { margin-top: 2vh; font-size: clamp(14px, 2vw, 20px); color: var(--muted); }
+  .tv-skipbar { height: 12px; background: #222; border-radius: 8px; max-width: 500px; margin: 1vh auto; overflow: hidden; }
+  .tv-skipbar > div { height: 100%; background: var(--primary); }
+  .tv-next { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 3vh; }
+  .tv-next .n { background: #111; border: 1px solid rgba(229,9,20,.5); border-radius: 10px; padding: 12px 18px; font-size: clamp(14px, 2vw, 20px); }
+  .tv-bottom { display: flex; gap: 24px; align-items: center; justify-content: center; margin-top: 4vh; flex-wrap: wrap; }
+  .tv-qr { background: #fff; border-radius: 12px; padding: 12px; }
+  .tv-qr img { width: clamp(140px, 20vw, 220px); display: block; }
+  .tv-cta { font-size: clamp(18px, 3vw, 30px); font-weight: 800; max-width: 420px; }
+  .tv-idle { font-size: clamp(24px, 4vw, 48px); font-weight: 800; margin-top: 6vh; }
+  .footer { display: none; }
+  .navbar { display: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tv-wrap" id="tv" {% if queue_url %}data-queue-url="{{ queue_url }}"{% endif %}>
+  <div class="tv-gym">{{ gym.name }}</div>
+  {% if now_item %}
+    <div class="tv-label">🔊 Tocando agora</div>
+    <div class="tv-now" id="tv-title">{{ now_item.title }}</div>
+    <div class="tv-artist" id="tv-artist">{{ now_item.artist or '' }}</div>
+    {% if now_item.kind == 'request' %}
+    <div class="tv-req" id="tv-req">pedido de <strong>{{ now_item.requested_by or 'Anônimo' }}</strong> 🙋</div>
+    {% endif %}
+    <div class="tv-skip" id="tv-skip">⏭️ {{ skip_votes }}/{{ skip_needed }} votos p/ pular</div>
+    <div class="tv-skipbar"><div id="tv-skipfill" style="width: {{ (100 * skip_votes // skip_needed) if skip_needed else 0 }}%;"></div></div>
+    {% if upcoming %}
+    <div class="tv-label">A seguir</div>
+    <div class="tv-next" id="tv-next">
+      {% for u in upcoming %}
+      <div class="n">{{ loop.index }}. {{ u.title }}{% if u.kind == 'request' %} 🙋{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="tv-idle">Escaneie e peça sua música 🎧<br><span style="color:var(--primary);">A aula já vai começar!</span></div>
+  {% endif %}
+  <div class="tv-bottom">
+    <div class="tv-qr"><img src="data:image/svg+xml;base64,{{ qr_code }}" alt="QR Code"></div>
+    <div class="tv-cta">📱 Aponte a câmera,<br>vote e peça sua música!</div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tv.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Não encontrado{% endblock %}
+{% block content %}
+<div class="container" style="max-width:560px;padding-top:60px;text-align:center;">
+  <div class="card"><h1>404 😅</h1><p>Página não encontrada.</p><a class="btn" href="{{ url_for('index') }}" style="margin-top:12px;">Voltar ao início</a></div>
+</div>
+{% endblock %}

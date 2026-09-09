@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Player - {{ mix.title }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card" style="text-align:center;">
+    <p style="color:var(--muted);font-size:13px;">TOCANDO AGORA • {{ mix.current_index + 1 if current else '—' }}/{{ items|length }} • ~{{ (total_sec // 60) }} min no total</p>
+    {% if current %}
+      <h1 style="font-size:clamp(26px,5vw,42px);">{{ current.title }}</h1>
+      <p style="font-size:18px;color:var(--muted);">{{ current.artist or '' }}
+      {% if current.kind == 'request' %}• pedido de <strong>{{ current.requested_by or 'Anônimo' }}</strong> 🙋{% endif %}
+      {% if current.kind == 'base' %}• da playlist base{% endif %}
+      {% if current.kind == 'block' %}• bloco da playlist base{% endif %}</p>
+      {% if current.platform_url %}
+      <p style="margin-top:10px;"><a class="btn" href="{{ current.platform_url }}" target="_blank" rel="noopener">▶ Abrir no {{ (current.platform or 'player')|title }}</a></p>
+      {% endif %}
+    {% else %}
+      <h1>Fim do mix 🏁</h1>
+      <p style="color:var(--muted);">Todas as faixas tocaram. Boa aula! 💪</p>
+    {% endif %}
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+      <a class="btn btn-secondary" href="{{ url_for('mix_prev', mix_id=mix.id) }}">⏮ Anterior</a>
+      <a class="btn" href="{{ url_for('mix_next', mix_id=mix.id) }}">Próxima ⏭</a>
+      <a class="btn btn-secondary" href="{{ url_for('mix_restart', mix_id=mix.id) }}" onclick="return confirmAction('Reiniciar o mix?')">🔁 Reiniciar</a>
+    </div>
+    {% if current %}
+    <p style="color:var(--muted);margin-top:10px;">⏭️ {{ skip_votes }}/{{ skip_needed }} votos dos alunos p/ pular esta faixa</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>📋 Fila (sorteio justo 🔀)</h2>
+    <p style="color:var(--muted);font-size:14px;">🔵 base • 🟣 pedido de aluno • ⬛ bloco da playlist. Pedidos do mesmo aluno nunca ficam grudados.</p>
+    {% for it in items %}
+    <div class="playlist-item" style="{{ 'border-width:2px;' if loop.index0 == mix.current_index else '' }} {{ 'opacity:.55;' if it.played else '' }}">
+      <div class="playlist-info">
+        <h3>{{ loop.index }}. {% if it.kind=='request' %}🟣{% elif it.kind=='block' %}⬛{% else %}🔵{% endif %} {{ it.title }}{% if it.artist %} — {{ it.artist }}{% endif %}</h3>
+        <div class="playlist-meta">{% if it.requested_by %}pedido de {{ it.requested_by }} • {% endif %}{{ it.duration_sec or 210 }}s
+        {% if it.played %} • ✓ tocou{% endif %}{% if loop.index0 == mix.current_index %} • ▶ tocando{% endif %}</div>
+      </div>
+      {% if it.platform_url and it.kind != 'block' %}
+      <a class="btn btn-small btn-secondary" href="{{ it.platform_url }}" target="_blank" rel="noopener">Ouvir</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a class="btn btn-secondary" href="{{ url_for('mixes') }}">← Mixes</a>
+      {% if mix.session_id %}<a class="btn btn-secondary" href="{{ url_for('session_results', session_id=mix.session_id) }}">Ver votação</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
