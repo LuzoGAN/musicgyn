@@ -1,0 +1,24 @@
+# /etc/systemd/system/gymbeats.service
+# Instalar: sudo cp gymbeats.service /etc/systemd/system/ && sudo systemctl daemon-reload
+[Unit]
+Description=GymBeats - Playlist Colaborativa para Academias
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/gymbeats
+Environment="PATH=/var/www/gymbeats/venv/bin"
+Environment="FLASK_ENV=production"
+EnvironmentFile=/var/www/gymbeats/.env
+ExecStart=/var/www/gymbeats/venv/bin/gunicorn \
+    --workers 2 --threads 2 --timeout 60 \
+    --bind 127.0.0.1:5000 \
+    --access-logfile - --error-logfile - \
+    wsgi:app
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

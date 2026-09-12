@@ -11,6 +11,13 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Cookies próprios (não colidem com outros apps no mesmo domínio)
+    SESSION_COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME") or "gymbeats_session"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    # Atrás de proxy HTTPS (nginx), o cookie só trafega com Secure
+    SESSION_COOKIE_SECURE = os.environ.get("FLASK_ENV") == "production"
+
 
 class TestConfig(Config):
     TESTING = True

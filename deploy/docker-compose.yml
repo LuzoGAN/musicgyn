@@ -1,0 +1,57 @@
+# Rode na VPS a partir da pasta deploy/.
+# Layout esperado na VPS:
+# /opt/sites/
+# ├── gymbeats/        <- este repositório (GymBeats)
+# ├── flanelinha/      <- projeto Flanelinha
+# └── deploy/          <- este arquivo + .env (pode ficar dentro de gymbeats/deploy)
+#
+# Uso: docker compose -f /opt/sites/gymbeats/deploy/docker-compose.yml up -d --build
+name: ozul-sites
+
+services:
+  gymbeats:
+    build: /opt/sites/gymbeats
+    image: gymbeats:latest
+    container_name: gymbeats
+    restart: unless-stopped
+    env_file: /opt/sites/gymbeats/deploy/.env
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: sqlite:////data/gymbeats.db
+    volumes:
+      - gymbeats-data:/data
+    expose:
+      - "5000"
+    ports:
+      - "127.0.0.1:5000:5000"   # só localhost: o nginx do host atende o mundo
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    mem_limit: 256m
+    mem_reservation: 128m
+
+  # Descomente quando o Flanelinha estiver com Dockerfile + wsgi.py (ver deploy/).
+  # flanelinha:
+  #   build: /opt/sites/flanelinha
+  #   image: flanelinha:latest
+  #   container_name: flanelinha
+  #   restart: unless-stopped
+  #   env_file: /opt/sites/flanelinha/.env
+  #   environment:
+  #     FLASK_ENV: production
+  #   volumes:
+  #     - flanelinha-data:/app/instance
+  #   expose:
+  #     - "8000"
+  #   ports:
+  #     - "127.0.0.1:8000:8000"
+  #   mem_limit: 256m
+  #   mem_reservation: 128m
+
+volumes:
+  gymbeats-data:
+  flanelinha-data:
