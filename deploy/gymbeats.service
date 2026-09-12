@@ -11,6 +11,8 @@ WorkingDirectory=/var/www/gymbeats
 Environment="PATH=/var/www/gymbeats/venv/bin"
 Environment="FLASK_ENV=production"
 EnvironmentFile=/var/www/gymbeats/.env
+# Migração/banco UMA vez antes de subir (evita 2 workers brigando no SQLite)
+ExecStartPre=/usr/bin/env BOOT_INIT=1 /var/www/gymbeats/venv/bin/python -c "import wsgi"
 ExecStart=/var/www/gymbeats/venv/bin/gunicorn \
     --workers 2 --threads 2 --timeout 60 \
     --bind 127.0.0.1:5000 \
