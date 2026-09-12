@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}GymBeats{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=110">
   <style>
     :root {
       {% if gym is defined and gym %}
@@ -49,7 +49,7 @@
   {% block content %}{% endblock %}
 
   <div class="footer">GymBeats • trilha sonora do seu treino • API pronta p/ iOS & Android em /api/v1/</div>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}?v=110"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>
