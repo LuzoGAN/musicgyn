@@ -50,7 +50,21 @@ curl -s http://127.0.0.1:5000/api/v1/health   # {"status":"ok",...}
 **3a.** Em `/var/www/flanelinha/Flanelinha/run.py`, logo após `app = create_app()`:
 ```python
 from werkzeug.middleware.proxy_fix import ProxyFix
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+
+class SubPathMiddleware:
+    """Prefixo fixo: o gunicorn descarta o header X-Script-Name."""
+    def __init__(self, app, prefix="/flanelinha"):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        environ["SCRIPT_NAME"] = self.prefix
+        return self.app(environ, start_response)
+
+
+app.wsgi_app = SubPathMiddleware(app.wsgi_app)
 ```
 
 **3b.** Em `/var/www/flanelinha/Flanelinha/app/config.py`, na classe `Config`:
